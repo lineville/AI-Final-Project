@@ -147,7 +147,7 @@
   (make-chess :board (copy-array (chess-board game))
 		:whose-turn (chess-whose-turn? game)
 		:pieces (copy-array (chess-pieces game))
-		:eval-subtotals (copy-arry (chess-eval-subtotals game))
+		:eval-subtotals (copy-array (chess-eval-subtotals game))
 		:move-history (copy-array (chess-move-history game))))
 
 (defun make-hash-key-from-game (game)
