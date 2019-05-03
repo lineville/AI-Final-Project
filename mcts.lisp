@@ -50,7 +50,7 @@
 
 (defstruct mc-node
   key             
-  whose-turn      
+  whose-turn?      
   (num-visits 0)  
   veck-moves      
   veck-visits     
@@ -109,7 +109,7 @@
 		 :veck-moves moves
 		 :veck-visits (make-array num-moves :initial-element 0)
 		 :veck-scores (make-array num-moves :initial-element 0)
-		 :whose-turn (whose-turn game))))
+		 :whose-turn? (chess-whose-turn? game))))
     ;; insert nodey into tree
     (setf (gethash key (mc-tree-hashy tree)) nodey)
     ;; return the node
@@ -123,7 +123,7 @@
 
 (defun select-move
     (nodey c)
-  (let* ((player (mc-node-whose-turn nodey))
+  (let* ((player (mc-node-whose-turn? nodey))
 	 (moves (mc-node-veck-moves nodey))
 	 (num-moves (length moves)))
   (cond

@@ -112,15 +112,15 @@
 	(let* ((pieces (chess-pieces game))
 				 (result '()))
 		(dotimes (i 16)
-		(cons (aref pieces 0 i) result))
-	(reverse result))
+		(setf result (cons (aref pieces 0 i) result)))
+		(reverse result))
 )
 
 (defun get-black-pieces (game)
 	(let* ((pieces (chess-pieces game))
 				 (result '()))
 		(dotimes (i 16)
-		(cons (aref pieces 1 i) result))
+		(setf result (cons (aref pieces 1 i) result)))
 	(reverse result))
 )
 
@@ -129,8 +129,10 @@
 ;;  INPUT:   HARRY, a 2-dimensional array
 ;;  OUTPUT:  A copy of HARRY
 
-(defun copy-array
-    (harry)
+(defun copy-array (harry)
+	(if (null harry) 
+	(return-from copy-array nil))
+
   (let* ((dims (array-dimensions harry))
 	 (kopy (make-array dims)))
     (dotimes (r (first dims))
@@ -140,15 +142,16 @@
 
 ;;  COPY-GAME
 ;; ------------------------------------------
-;;  INPUT:   GAME, an OTHELLO struct
+;;  INPUT:   GAME, an CHESS struct
 ;;  OUTPUT:  A copy of GAME
 
 (defmethod copy-game (game)
-  (make-chess :board (copy-array (chess-board game))
-		:whose-turn (chess-whose-turn? game)
+  (make-chess 
+		:board (copy-array (chess-board game))
+		:whose-turn? (chess-whose-turn? game)
 		:pieces (copy-array (chess-pieces game))
 		:eval-subtotals (copy-array (chess-eval-subtotals game))
-		:move-history (copy-array (chess-move-history game))))
+		:move-history (chess-move-history game)))
 
 (defun make-hash-key-from-game (game)
 	(list
