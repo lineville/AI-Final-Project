@@ -140,17 +140,33 @@
 	(setf (aref kopy r c) (aref harry r c))))
     kopy))
 
+(defun copy-piece (piece)
+	(make-piece :owner (piece-owner piece)
+							:type (piece-type piece)
+							:row (piece-row piece)
+							:col (piece-col piece)
+							:live? (piece-live? piece)
+							:value (piece-value piece)))
+
+(defun create-copy-pieces (pieces)
+	(let* ((dims (array-dimensions pieces))
+				 (new-pieces (make-array dims)))
+		(dotimes (i (first dims))
+			(dotimes (j (second dims))
+				(setf (aref new-pieces i j) (copy-piece (aref pieces i j)))))
+		new-pieces))
+
+
 ;;  COPY-GAME
 ;; ------------------------------------------
 ;;  INPUT:   GAME, an CHESS struct
 ;;  OUTPUT:  A copy of GAME
 
 (defmethod copy-game (game)
-	(format t "~A~%~A~%~A~%~A~%~A~%" (chess-board game) (chess-whose-turn? game) (chess-pieces game) (chess-eval-subtotals game) (chess-move-history game))
   (make-chess 
 		:board (copy-array (chess-board game))
 		:whose-turn? (chess-whose-turn? game)
-		:pieces (copy-array (chess-pieces game))
+		:pieces (create-copy-pieces (chess-pieces game))
 		:eval-subtotals (copy-seq (chess-eval-subtotals game))
 		:move-history (chess-move-history game)))
 
@@ -559,6 +575,7 @@
 
       ;; put piece on destination square
       (setf (aref bored r2 c2) piece)
+			(format t "~A~%" piece)
       (setf (piece-row piece) r2)
       (setf (piece-col piece) c2)
       ;; toggle the turn
@@ -920,8 +937,7 @@
 ;;    game ends with WHITE having 25 pieces and BLACK having 31 pieces,
 ;;    then black wins by 6 pieces, and the output is approximately 2.45.
 
-(defmethod default-policy
-    ((game chess))
+(defmethod default-policy (game)
   ;; Do random moves until the game is over
   (while (not (game-over? game))
     (do-random-move! game))

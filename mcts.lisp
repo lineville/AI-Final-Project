@@ -128,6 +128,7 @@
   (let* ((player (mc-node-whose-turn? nodey))
 	 (moves (mc-node-veck-moves nodey))
 	 (num-moves (length moves)))
+	 (format T "~%~%~%~%nodey: ~A ~% c: ~A ~% player: ~A ~% moves: ~A ~% num-moves: ~A ~%~%~%~%~%" nodey c player moves num-moves)
   (cond
      ;; No legal moves!
      ((= num-moves 0)
@@ -278,23 +279,27 @@
 
 (defun uct-search
     (orig-game num-sims c)
+		
   ;; Want to use COPY of GAME struct for simulations...
   ;; That way, can reset game struct before each simulation...
   (let* ((tree (new-mc-tree orig-game))
 	 (hashy (mc-tree-hashy tree))
 	 ;;(player (whose-turn orig-game))
 	 )
+	 (format t "tree: ~A, hashy: ~A" tree hashy)
     (dotimes (i num-sims)
       (let* (;; Work with a COPY of the original game struct
 	     (game (copy-game orig-game))
 	     ;; Phase 1:  SIM-TREE Destructively modifies game
 	     (key-move-acc (sim-tree game tree c))
 	     ;; Phase 2:  SIM-DEFAULT returns result 
-	     (playout-result (sim-default game))) 
-	;; Finally, backup the results
-	(backup hashy key-move-acc playout-result)))				   
+	     (playout-result (sim-default game)))
+			 (format t "game: ~A ~%~%" game)
+			 ;; Finally, backup the results
+			 (backup hashy key-move-acc playout-result)))				   
     ;; Select the best move (using c = 0 because we are not exploring anymore)
-    (let* ((rootie (get-root-node tree))
+    (format T "~A ~%~%~%~%" (get-root-node tree))
+		(let* ((rootie (get-root-node tree))
 	   (mv-index (select-move rootie 0))
 	   (move (svref (mc-node-veck-moves rootie) mv-index))
 	   (scores (mc-node-veck-scores rootie))
