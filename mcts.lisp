@@ -87,6 +87,8 @@
 ;;  OUTPUT:  A new MC tree whose root state is derived
 ;;           from GAME.
 
+;; !! Make a root node somewhere
+
 (defun new-mc-tree
     (game)
   (make-mc-tree :root-key (make-hash-key-from-game game)))

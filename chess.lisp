@@ -111,17 +111,17 @@
 (defun get-white-pieces (game)
 	(let* ((pieces (chess-pieces game))
 				 (result '()))
-		(dotimes (i 16)
-		(setf result (cons (aref pieces 0 i) result)))
-		(reverse result))
+		(dotimes (i (second (array-dimensions pieces)))
+		(push (aref pieces 0 i) result))
+		(coerce (reverse result) 'vector))
 )
 
 (defun get-black-pieces (game)
 	(let* ((pieces (chess-pieces game))
 				 (result '()))
-		(dotimes (i 16)
-		(setf result (cons (aref pieces 1 i) result)))
-	(reverse result))
+		(dotimes (i (second (array-dimensions pieces)))
+		(push (aref pieces 1 i) result))
+		(coerce (reverse result) 'vector))
 )
 
 ;;  COPY-ARRAY
@@ -146,11 +146,12 @@
 ;;  OUTPUT:  A copy of GAME
 
 (defmethod copy-game (game)
+	(format t "~A~%~A~%~A~%~A~%~A~%" (chess-board game) (chess-whose-turn? game) (chess-pieces game) (chess-eval-subtotals game) (chess-move-history game))
   (make-chess 
 		:board (copy-array (chess-board game))
 		:whose-turn? (chess-whose-turn? game)
 		:pieces (copy-array (chess-pieces game))
-		:eval-subtotals (copy-array (chess-eval-subtotals game))
+		:eval-subtotals (copy-seq (chess-eval-subtotals game))
 		:move-history (chess-move-history game)))
 
 (defun make-hash-key-from-game (game)
@@ -793,7 +794,7 @@
 	    (funcall (svref *move-funcs* type) g row col moves)))))
     
     ;; return the accumulated moves	 
-    moves))
+    (coerce moves 'vector)))
   
 
 ;;  GAME-OVER?
@@ -908,3 +909,69 @@
     g
     ))
  
+
+ ;;  DEFAULT-POLICY
+;; ---------------------------------------------------------------------------
+;;  INPUT:  GAME, an OTHELLO struct
+;;  OUTPUT: The result (from black's perspective) of playing out the
+;;    current game using randomly selected moves.  The amount of the
+;;    win/loss is reported by the SQUARE-ROOT of the absolute difference
+;;    in the number of pieces for the two players.  For example, if the
+;;    game ends with WHITE having 25 pieces and BLACK having 31 pieces,
+;;    then black wins by 6 pieces, and the output is approximately 2.45.
+
+(defmethod default-policy
+    ((game chess))
+  ;; Do random moves until the game is over
+  (while (not (game-over? game))
+    (do-random-move! game))
+  ;; Then count up the pieces for each player and compute the score
+  (let* ((counts (count-pieces game))
+	 (whites (first counts))
+	 (blacks (second counts))
+	 (diff (- blacks whites)))
+    ;; The winner's score is the square root of the difference
+    ;; of the number of pieces.  Black win is positive, White negative.
+    (cond
+     ;; Case 1:  BLACK won
+     ((< diff 0)
+      (- 0 (sqrt (abs diff))))
+     ;; Case 2:  WHITE won
+     ((> diff 0)
+      (sqrt diff))
+     ;; Case 3:  A tie!
+     (t
+      0))))
+
+;;  RANDOM-MOVE
+;; ------------------------------------------
+;;  INPUT:  GAME, an chess struct
+;;  OUTPUT:  One of the legal moves available to the current
+;;   player, chosen randomly.
+
+(defmethod random-move (game)
+  (let* ((moves (legal-moves game)))
+    (svref moves (random (first (array-dimensions moves))))))
+
+;;  DO-RANDOM-MOVE!
+;; ------------------------------------------------
+;;  INPUT:   GAME, an chess struct
+;;  OUTPUT:  The modified game
+;;  SIDE EFFECT:  Destructively modifies GAME by doing one of the 
+;;   legal moves available to the current player, chosen randomly.
+
+(defmethod do-random-move! (game)
+  (let ((move (random-move game)))
+    (apply #'do-move! game nil move)))
+
+
+;;  COUNT-pieces
+;; ----------------------------------------
+;;  INPUT:   G, an OTHELLO struct
+;;  OUTPUT:  A list of the form (WHITES BLACKS) indicating the number of
+;;           pieces by the two players that are currently on the board
+
+(defun count-pieces (g)
+  (let ((whites (first (array-dimensions (get-white-pieces g))))
+				(blacks (first (array-dimensions (get-black-pieces g)))))
+    (list whites blacks)))
