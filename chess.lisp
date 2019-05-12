@@ -577,6 +577,7 @@
       (setf (aref bored r2 c2) piece)
 			(format t "~A~%" piece)
       (setf (piece-row piece) r2)
+			(format t "here? ~%")
       (setf (piece-col piece) c2)
       ;; toggle the turn
       (toggle-turn! game)
