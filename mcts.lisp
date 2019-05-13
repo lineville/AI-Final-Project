@@ -286,7 +286,7 @@
 	 (hashy (mc-tree-hashy tree))
 	 ;;(player (whose-turn orig-game))
 	 )
-	 (format t "tree: ~A, hashy: ~A" tree hashy)
+	;;  (format t "tree: ~A, hashy: ~A" tree hashy)
     (dotimes (i num-sims)
       (let* (;; Work with a COPY of the original game struct
 	     (game (copy-game orig-game))
@@ -294,17 +294,17 @@
 	     (key-move-acc (sim-tree game tree c))
 	     ;; Phase 2:  SIM-DEFAULT returns result 
 	     (playout-result (sim-default game)))
-			 (format t "game: ~A ~%~%" game)
+			;;  (format t "game: ~A ~%~%" game)
 			 ;; Finally, backup the results
 			 (backup hashy key-move-acc playout-result)))				   
     ;; Select the best move (using c = 0 because we are not exploring anymore)
-    (format T "~A ~%~%~%~%" (get-root-node tree))
+    ;; (format T "~A ~%~%~%~%" (get-root-node tree))
 		(let* ((rootie (get-root-node tree))
 	   (mv-index (select-move rootie 0))
 	   (move (svref (mc-node-veck-moves rootie) mv-index))
 	   (scores (mc-node-veck-scores rootie))
 	   (score (svref scores mv-index)))
-      (format t ".")
+      ;; (format t ".")
       (when *verbose*
 	;; Display some stats along with the best move
 	(format t "Best score: ~5,3F score veck: " score)

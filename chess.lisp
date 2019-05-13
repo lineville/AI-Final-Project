@@ -174,11 +174,12 @@
 		(dotimes (i 15)
 			(let ((pc (aref pcs 0 i)))
 				(when (piece-live? pc)
+					;; (setf (chess-board chess) bored)
 					(put-piece! chss (aref pcs 0 i)))))
 		(dotimes (i 15)
-			(let ((pc (aref pcs 0 i)))
+			(let ((pc (aref pcs 1 i)))
 				(when (piece-live? pc)
-					(put-piece! chss (aref pcs 0 i)))))
+					(put-piece! chss (aref pcs 1 i)))))
 			chss))
 
 (defun make-hash-key-from-game (game)
@@ -817,9 +818,10 @@
 	     (row (piece-row p))
 	     (col (piece-col p)))
 	;; If the piece is live...
-	(print "piece")
-	(print row)
-	(print col)
+	;; (print "piece")
+	;; (print row)
+	;; (print col)
+	;; (print (piece-live? p))
 	(when (and p (piece-live? p))
 	  ;; Accumulate moves for that piece...
 	  (setf moves
@@ -998,7 +1000,7 @@
 
 (defmethod do-random-move! (game)
   (let ((move (random-move game)))
-    (apply #'do-move! game nil move)))
+    (apply #'do-move! game t move)))
 
 
 ;;  COUNT-pieces
