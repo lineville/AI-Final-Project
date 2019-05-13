@@ -112,8 +112,8 @@
 	(let* ((pieces (chess-pieces game))
 				 (result '()))
 		(dotimes (i (second (array-dimensions pieces)))
-		(push (aref pieces 0 i) result))
-		(coerce (reverse result) 'vector))
+			(push (aref pieces 0 i) result))
+			(coerce (reverse result) 'vector))
 )
 
 (defun get-black-pieces (game)
@@ -163,12 +163,23 @@
 ;;  OUTPUT:  A copy of GAME
 
 (defmethod copy-game (game)
-  (make-chess 
-		:board (copy-array (chess-board game))
-		:whose-turn? (chess-whose-turn? game)
-		:pieces (create-copy-pieces (chess-pieces game))
-		:eval-subtotals (copy-seq (chess-eval-subtotals game))
-		:move-history (chess-move-history game)))
+	(let* ((pcs (create-copy-pieces (chess-pieces game)))
+					(bored (make-array '(8 8) :initial-element nil))
+					(chss (make-chess 
+						:board (copy-array (chess-board game))
+						:whose-turn? (chess-whose-turn? game)
+						:pieces (create-copy-pieces (chess-pieces game))
+						:eval-subtotals (copy-seq (chess-eval-subtotals game))
+						:move-history (chess-move-history game))))
+		(dotimes (i 15)
+			(let ((pc (aref pcs 0 i)))
+				(when (piece-live? pc)
+					(put-piece! chss (aref pcs 0 i)))))
+		(dotimes (i 15)
+			(let ((pc (aref pcs 0 i)))
+				(when (piece-live? pc)
+					(put-piece! chss (aref pcs 0 i)))))
+			chss))
 
 (defun make-hash-key-from-game (game)
 	(list
@@ -280,27 +291,27 @@
     ;; Create all of the pieces
     (dolist (triple *white-info*)
       (let ((p-type (first triple)))
-	(create-but-dont-set-piece game *white* p-type ctr)
-	(create-but-dont-set-piece game *black* p-type ctr)
-	(incf ctr)))
+				(create-but-dont-set-piece game *white* p-type ctr)
+				(create-but-dont-set-piece game *black* p-type ctr)
+				(incf ctr)))
 
     (dolist (triple white-info)
       (let ((p-type (first triple))
-	    (row (second triple))
-	    (col (third triple)))
-	;; Find first piece of this type 
-	(let ((pc (find-piece game *white* p-type)))
-	  (setf (piece-row pc) row)
-	  (setf (piece-col pc) col)
-	  (put-piece! game pc))))
+	    	(row (second triple))
+	    	(col (third triple)))
+				;; Find first piece of this type 
+				(let ((pc (find-piece game *white* p-type)))
+	  			(setf (piece-row pc) row)
+	  			(setf (piece-col pc) col)
+	  			(put-piece! game pc))))
     (dolist (triple black-info)
       (let ((p-type (first triple))
-	    (row (second triple))
-	    (col (third triple)))
-	(let ((pc (find-piece game *black* p-type)))
-	  (setf (piece-row pc) row)
-	  (setf (piece-col pc) col)
-	  (put-piece! game pc))))
+	    	(row (second triple))
+	    	(col (third triple)))
+				(let ((pc (find-piece game *black* p-type)))
+	  			(setf (piece-row pc) row)
+	  			(setf (piece-col pc) col)
+	  			(put-piece! game pc))))
 	;; RETURN THE GAME!
     game))
 
@@ -806,6 +817,9 @@
 	     (row (piece-row p))
 	     (col (piece-col p)))
 	;; If the piece is live...
+	(print "piece")
+	(print row)
+	(print col)
 	(when (and p (piece-live? p))
 	  ;; Accumulate moves for that piece...
 	  (setf moves
@@ -940,8 +954,13 @@
 
 (defmethod default-policy (game)
   ;; Do random moves until the game is over
+	(let ((i 0))
   (while (not (game-over? game))
-    (do-random-move! game))
+    (incf i)
+		(print i)
+		(print-list-array (legal-moves game))
+		(print-chess game t i)
+		(do-random-move! game)))
   ;; Then count up the pieces for each player and compute the score
   (let* ((counts (count-pieces game))
 	 (whites (first counts))
@@ -992,3 +1011,15 @@
   (let ((whites (first (array-dimensions (get-white-pieces g))))
 				(blacks (first (array-dimensions (get-black-pieces g)))))
     (list whites blacks)))
+
+(defun print-list-array (x)
+	(dotimes (i (length x))
+		(print (svref x i)))
+		0)
+
+(defun do-random-moves-tester ()
+	(let ((g (init-game)))
+		(dotimes (i 1000)
+			(do-random-move! g)
+			(print-chess g t i)
+			(print-list-array (legal-moves g)))))
