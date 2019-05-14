@@ -325,13 +325,24 @@
 ;;  NOTE:  Removing piece from the board does not affect the
 ;;         values of its ROW and COL fields.  (See PUT-PIECE!.)
 
-(defun pull-piece! (game pc)
+(defun pull-piece! (game pc &optional (plr nil))
+	(let* ((whose-turn? (if plr plr (chess-whose-turn? game)))
+	 				(pieces (chess-pieces game))
+					 (plr-pieces (if whose-turn? (get-white-pieces game)
+					 															(get-black-pieces game)))
+					 ;; yeah... it's not going to work with a 2d array
+					 ;; so we just need to use get white or get black pieces
+					 (index (position pc plr-pieces))
+					 (p (aref pieces whose-turn? index)))
+					;;  * test if we get the index of piece
+					 (format t "Piece: ~A~%" p)
   (setf (piece-live? pc) nil)
+	(setf (piece-live? p) nil)
   (setf (aref (chess-board game) (piece-row pc) (piece-col pc)) 
     nil)
   ;; ==> decrement the value-subtotals for appropriate color
   (decf (svref (chess-eval-subtotals game) (piece-owner pc))
-	(piece-value pc)))
+	(piece-value pc))))
 
 
 ;;  PUT-PIECE!  -- used by UNDO-MOVE!
@@ -342,9 +353,31 @@
 ;;  SIDE EFFECT:  Restores given piece to the board at the
 ;;    location specified by its ROW and COL fields.
 
-(defun put-piece! (game pc)
+(defun put-piece! (game pc &optional (plr nil))
+  ;; (let* ((whose-turn? (if plr plr (chess-whose-turn? game)))
+	;;  				(pieces (chess-pieces game))
+	;; 				 (plr-pieces (if whose-turn? (get-white-pieces game)
+	;; 				 															(get-black-pieces game)))
+	;; 				 ;; yeah... it's not going to work with a 2d array ... Ya you could be right. it looks like the index is working
+	;; 				 ;; so we just need to use get white or get black pieces I don't know if we need all of this in put piece maybe just pull
+	;; 				 (index (position pc plr-pieces))
+	;; 				 (p (aref pieces whose-turn? index)))
+	;; 				;;  * test if we get the index of piece
+	;; 				 (format t "Piece: ~A Index: ~A~%" p index)
   (setf (piece-live? pc) t)
+	;; (setf (piece-live? p) t)
   ;; ==> increment eval-subtotal for owner of piece
+	;; I cant see why the piece is getting illegal moves
+	;; moved but the piece is not actually getting update
+	;; I think what's happening is a piece will get moved, but for some reason there's 
+	;; still a memory location that says there is a piece in this spot and so we calculate the legal moves
+	;; for that spot
+	;; a workaround we could make which would definitely be janky is when we're running an AI
+	;; if we get an illegal move go back to random move and remove that move from the list of legal moves
+	;; and then pick a new one
+	;; i think thats not a bad idea actually we could try that
+	;; I'm not sure how we'd do that though...
+	;; I have to go run and turn something in quickly, can you try to get a start on that?
   (incf (svref (chess-eval-subtotals game) (piece-owner pc))
 	(piece-value pc))
   (setf (aref (chess-board game) (piece-row pc) (piece-col pc))
@@ -884,7 +917,7 @@
 
 (defun do-n-random-moves (g n)
   (dotimes (i n)
-    (apply #'do-move! g nil (nconc (let* ((moves (legal-moves g))
+    (apply #'do-move! g t (nconc (let* ((moves (legal-moves g))
 					  (len (length moves))
 					  (rnd (random len)))
 				     (nth rnd moves))
@@ -938,7 +971,7 @@
     ;; For each move in the LIST-O-MOVES...
     (mapcar #'(lambda (movie)
 		;; Do the move...
-		(apply #'do-move! g nil movie))
+		(apply #'do-move! g t movie))
 	    list-o-moves)
     g
     ))
