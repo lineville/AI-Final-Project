@@ -87,7 +87,7 @@
 ;;  OUTPUT:  A new MC tree whose root state is derived
 ;;           from GAME.
 
-;; !! Make a root node somewhere
+;; !! Make a root node somewhere -- I think this is taken care of
 
 (defun new-mc-tree
     (game)
